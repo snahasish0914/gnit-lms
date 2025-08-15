@@ -1,107 +1,103 @@
 
-import { auth, db, provider, signInWithPopup, onAuthStateChanged, signOut, collection, doc, setDoc, getDocs, query, where, orderBy } from './firebase.js';
+import { auth, db, provider, signInWithPopup, onAuthStateChanged, signOut, collection, doc, setDoc, getDoc, getDocs, query, orderBy } from './firebase.js';
+import { fmtPct } from './utils.js';
 
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const userName = document.getElementById('userName');
-const todayBadge = document.getElementById('todayBadge');
 
 loginBtn.addEventListener('click', () => signInWithPopup(auth, provider));
 logoutBtn.addEventListener('click', () => signOut(auth));
-
-function fmtPct(n){ return (isNaN(n)? 0 : Math.round(n)) + '%'; }
-
-function ymd(d){
-  const dt = (d instanceof Date)? d : new Date(d);
-  const mm = String(dt.getMonth()+1).padStart(2,'0');
-  const dd = String(dt.getDate()).padStart(2,'0');
-  return `${dt.getFullYear()}-${mm}-${dd}`;
-}
-
-const today = ymd(new Date());
-todayBadge.textContent = `Today: ${today}`;
 
 onAuthStateChanged(auth, async (user) => {
   if(user){
     loginBtn.classList.add('hidden');
     logoutBtn.classList.remove('hidden');
     userName.textContent = user.displayName || user.email;
-    await renderFor(user);
+    await ensureStudentDoc(user);
+    await renderDashboard(user);
   }else{
     loginBtn.classList.remove('hidden');
     logoutBtn.classList.add('hidden');
     userName.textContent = '';
-    await renderFor(null);
+    setKpis(0,0);
+    renderCalendar([]); // empty calendar
   }
 });
 
-async function renderFor(user){
-  const tbody = document.querySelector('#daysTable tbody');
-  tbody.innerHTML = '';
+async function ensureStudentDoc(user){
+  const ref = doc(db, 'students', user.uid);
+  const snap = await getDoc(ref);
+  if(!snap.exists()){
+    await setDoc(ref, { uid: user.uid, name: user.displayName || '', email: user.email || '' });
+  }
+}
+
+function setKpis(total, attended){
+  document.getElementById('kpiTotal').textContent = total;
+  document.getElementById('kpiAttended').textContent = attended;
+  const pct = total ? (attended/total)*100 : 0;
+  document.getElementById('kpiPct').textContent = fmtPct(pct);
+}
+
+// Build events for FullCalendar from Firestore
+async function renderDashboard(user){
+  // Load all schedule documents
   const schedQ = query(collection(db,'schedule'), orderBy('date','asc'));
   const schedSnap = await getDocs(schedQ);
-  const schedule = [];
-  let totalClasses = 0;
-  schedSnap.forEach(d => {
-    const row = d.data();
-    totalClasses += (row.classCount || 0);
-    schedule.push(row);
-  });
 
-  let attendedDates = new Set();
-  if(user){
-    const attQ = query(collection(db,'attendance'), where('uid','==',user.uid));
-    const attSnap = await getDocs(attQ);
-    attSnap.forEach(d => attendedDates.add(d.data().date));
-  }
+  // For each schedule date, read attendance for this user
+  const events = [];
+  let totalAll = 0;
+  let attendedAll = 0;
 
-  let attendedClasses = 0;
+  for (const d of schedSnap.docs){
+    const date = d.id; // YYYY-MM-DD
+    const total = d.data().classCount || 0;
+    if(total <= 0) continue;
 
-  for(const row of schedule){
-    const marked = attendedDates.has(row.date);
-    if(marked){ attendedClasses += (row.classCount || 0); }
+    totalAll += total;
 
-    const tr = document.createElement('tr');
-    const status = marked ? '<span class="badge">Present</span>' : '<span class="small">Not Marked</span>';
-    const disabled = (!user || marked || row.date>today) ? 'disabled' : '';
-    tr.innerHTML = `
-      <td>${row.date}</td>
-      <td>${row.classCount}</td>
-      <td>${status}</td>
-      <td>
-        <button class="btn success" data-date="${row.date}" ${disabled}>Mark Present</button>
-      </td>`;
-    tbody.appendChild(tr);
-  }
+    const userAttRef = doc(db,'attendance', date, 'students', user.uid);
+    const attSnap = await getDoc(userAttRef);
+    const attended = attSnap.exists() ? (attSnap.data().attendedClasses || 0) : 0;
+    attendedAll += attended;
 
-  if(user){
-    const pct = totalClasses ? (attendedClasses/totalClasses)*100 : 0;
-    document.getElementById('kpiTotal').textContent = totalClasses;
-    document.getElementById('kpiAttended').textContent = attendedClasses;
-    document.getElementById('kpiPct').textContent = fmtPct(pct);
-  }else{
-    document.getElementById('kpiTotal').textContent = totalClasses;
-    document.getElementById('kpiAttended').textContent = 0;
-    document.getElementById('kpiPct').textContent = '0%';
-  }
+    // Color logic
+    let color = '#ef4444'; // red none
+    if(attended === total) color = '#10b981'; // green full
+    else if(attended > 0 && attended < total) color = '#f59e0b'; // yellow partial
 
-  // attach listeners
-  tbody.querySelectorAll('button[data-date]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      if(!auth.currentUser){ alert('Please sign in.'); return; }
-      const d = btn.getAttribute('data-date');
-      try{
-        await setDoc(doc(db,'attendance', `${auth.currentUser.uid}_${d}`), {
-          uid: auth.currentUser.uid,
-          date: d,
-          status: 'present',
-          timestamp: Date.now()
-        });
-        await renderFor(auth.currentUser);
-      }catch(e){
-        console.error(e);
-        alert('Error marking present: '+ e.message);
-      }
+    events.push({
+      title: `${attended}/${total}`,
+      start: date,
+      allDay: true,
+      display: 'background', // color the background of the day cell
+      backgroundColor: color
     });
+    // Also add a small label event so numbers are visible
+    events.push({
+      title: `${attended}/${total}`,
+      start: date,
+      allDay: true,
+      color: 'transparent',
+      textColor: '#000'
+    });
+  }
+
+  setKpis(totalAll, attendedAll);
+  renderCalendar(events);
+}
+
+function renderCalendar(events){
+  const el = document.getElementById('calendar');
+  el.innerHTML = ''; // reset
+  const calendar = new FullCalendar.Calendar(el, {
+    initialView: 'dayGridMonth',
+    height: 'auto',
+    firstDay: 0,
+    headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+    events
   });
+  calendar.render();
 }

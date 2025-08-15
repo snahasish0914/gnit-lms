@@ -1,11 +1,10 @@
 
-// ==== Firebase bootstrap (v10 modular) ====
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, setDoc, addDoc, getDocs, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
 
-// 1) Fill these with your own project's values from Firebase Console
 export const firebaseConfig = {
+    // Replace with your own Firebase config
     apiKey: "AIzaSyBimjSAEhXgUr8XiJcdU5qMAmqBoZD7zBc",
     authDomain: "attendanceportal-c745d.firebaseapp.com",
     databaseURL: "https://attendanceportal-c745d-default-rtdb.firebaseio.com",
@@ -21,6 +20,6 @@ export const db   = getFirestore(app);
 export const provider = new GoogleAuthProvider();
 
 export {
-  GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut,
-  collection, doc, getDoc, setDoc, addDoc, getDocs, query, where, orderBy, onSnapshot, serverTimestamp
+  signInWithPopup, onAuthStateChanged, signOut,
+  collection, doc, getDoc, setDoc, getDocs, query, orderBy
 };

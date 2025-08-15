@@ -10,15 +10,13 @@
 <body>
   <div class="topbar">
     <div style="display:flex; align-items:center; gap:10px">
-      <span style="font-weight:700; letter-spacing:.5px">LEARNING MANAGEMENT SYSTEM</span>
+      <span style="font-weight:800; letter-spacing:.4px">LEARNING MANAGEMENT SYSTEM</span>
       <span class="badge">Admin</span>
     </div>
-    <div>
-      <button id="logoutBtn" class="btn ghost">Logout</button>
-    </div>
+    <div><button id="logoutBtn" class="btn ghost">Logout</button></div>
   </div>
 
-  <h1>Admin Panel – Class Schedule</h1>
+  <h1>Admin Panel</h1>
 
   <div class="container">
     <div class="card">
@@ -37,7 +35,7 @@
           <button id="saveBtn" class="btn">Save Day</button>
         </div>
       </div>
-      <p class="small">Tip: pick a past or future date; saving again will overwrite class count for that date.</p>
+      <p class="small">Saving again overwrites class count for that date.</p>
     </div>
 
     <div class="card" style="margin-top:18px">
@@ -49,6 +47,31 @@
         <thead><tr><th>Date</th><th>Class Count</th></tr></thead>
         <tbody></tbody>
       </table>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h3>Mark Attendance</h3>
+      <div class="grid" style="margin-top:8px; align-items:end">
+        <div class="field" style="grid-column:span 4">
+          <label for="attendanceDate">Date</label>
+          <input type="date" id="attendanceDate" />
+        </div>
+        <div class="field" style="grid-column:span 4">
+          <label>Total Classes (from schedule)</label>
+          <input type="number" id="attendanceTotal" min="0" value="0" disabled />
+        </div>
+        <div class="field" style="grid-column:span 4">
+          <button id="loadStudentsBtn" class="btn secondary">Load Students</button>
+        </div>
+      </div>
+      <table class="table" id="attendanceTable" style="margin-top:12px">
+        <thead><tr><th>Name</th><th>Email</th><th>Attended Classes</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="sticky-actions">
+        <button id="saveAttendanceBtn" class="btn success">Save Attendance</button>
+      </div>
+      <p class="small">Values are clamped between 0 and Total Classes.</p>
     </div>
   </div>
 
