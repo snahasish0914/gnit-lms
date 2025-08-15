@@ -40,7 +40,7 @@ attendance-portal/
 
 ### 1️⃣ Clone the repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/attendance-portal.git
+git clone https://github.com/snahasish0914/attendance-portal.git
 cd attendance-portal
 ```
 
