@@ -52,7 +52,7 @@ const attendanceDateEl = document.getElementById('attendanceDate');
 const attendanceTotalEl = document.getElementById('attendanceTotal');
 const loadStudentsBtn = document.getElementById('loadStudentsBtn');
 const saveAttendanceBtn = document.getElementById('saveAttendanceBtn');
-const attendanceTBody = document.querySelector('#attendanceTable tbody');
+const attendanceTBody = document.getElementById('attendanceTBody');
 
 loadStudentsBtn.addEventListener('click', async () => {
   const date = attendanceDateEl.value;
