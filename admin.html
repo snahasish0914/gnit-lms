@@ -1,0 +1,59 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Attendance Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div style="display:flex; align-items:center; gap:10px">
+      <span style="font-weight:700; letter-spacing:.5px">LEARNING MANAGEMENT SYSTEM</span>
+      <span class="badge">Admin</span>
+    </div>
+    <div>
+      <button id="logoutBtn" class="btn ghost">Logout</button>
+    </div>
+  </div>
+
+  <h1>Admin Panel – Class Schedule</h1>
+
+  <div class="container">
+    <div class="card">
+      <h3>Create / Update Class Day</h3>
+      <div class="grid" style="margin-top:8px">
+        <div class="field" style="grid-column:span 4">
+          <label for="classDate">Date</label>
+          <input type="date" id="classDate" />
+        </div>
+        <div class="field" style="grid-column:span 4">
+          <label for="classCount">Number of Classes on this date</label>
+          <input type="number" id="classCount" min="1" value="1" />
+        </div>
+        <div class="field" style="grid-column:span 4">
+          <label>&nbsp;</label>
+          <button id="saveBtn" class="btn">Save Day</button>
+        </div>
+      </div>
+      <p class="small">Tip: pick a past or future date; saving again will overwrite class count for that date.</p>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <div style="display:flex; justify-content:space-between; align-items:center">
+        <h3>All Scheduled Days</h3>
+        <div class="badge" id="totalClasses">0 total classes</div>
+      </div>
+      <table class="table" id="scheduleTable">
+        <thead><tr><th>Date</th><th>Class Count</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>© Guru Nanak Institute of Technology</footer>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
