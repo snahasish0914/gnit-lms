@@ -73,7 +73,7 @@ async function renderDashboard(user){
       start: date,
       allDay: true,
       display: 'background', // color the background of the day cell
-      backgroundColor: color,
+      backgroundColor: black,
       interactive: false
     });
   }
