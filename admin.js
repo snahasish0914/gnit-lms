@@ -89,56 +89,28 @@ const attendanceTBody = document.getElementById('attendanceTBody');
 
 loadStudentsBtn.addEventListener('click', async () => {
   const date = attendanceDateEl.value;
-  if (!date) { alert('Pick a date first'); return; }
-
+  if(!date){ alert('Pick a date first'); return; }
   const schedDoc = await getDoc(doc(db,'schedule', date));
   const total = schedDoc.exists() ? (schedDoc.data().classCount || 0) : 0;
   attendanceTotalEl.value = total;
 
   attendanceTBody.innerHTML = '';
-
-  // Load existing attendance first
-  const existingSnap = await getDocs(collection(db, 'attendance', date, 'students'));
-  const existing = {};
-  existingSnap.forEach(edoc => { existing[edoc.id] = edoc.data(); });
-
-  // Load all students
   const studentsSnap = await getDocs(collection(db,'students'));
   studentsSnap.forEach(sdoc => {
     const s = sdoc.data();
-    const id = sdoc.id;
-    const prev = existing[id];
+    const inputId = `att-${sdoc.id}`;
     const tr = document.createElement('tr');
-
-    if (prev) {
-      // Already has attendance → show value + pencil
-      tr.innerHTML = `
-        <td>${s.name || 'Unnamed'}</td>
-        <td>${s.email || ''}</td>
-        <td>
-          <span id="att-val-${id}">${prev.attendedClasses}/${prev.totalClasses}</span>
-          <button class="edit-btn" data-id="${id}" style="margin-left:8px">✏️</button>
-        </td>`;
-    } else {
-      // No attendance yet → show input
-      tr.innerHTML = `
-        <td>${s.name || 'Unnamed'}</td>
-        <td>${s.email || ''}</td>
-        <td><input type="number" min="0" max="${total}" id="att-${id}" placeholder="0"></td>`;
-    }
-
+    tr.innerHTML = `
+      <td>${s.name || 'Unnamed'}</td><td>${s.email || ''}</td>
+      <td><input type="number" min="0" max="${total}" id="${inputId}" placeholder="0"></td>`;
     attendanceTBody.appendChild(tr);
   });
 
-  // Enable editing when pencil clicked
-  document.querySelectorAll('.edit-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      const id = e.target.dataset.id;
-      const span = document.getElementById(`att-val-${id}`);
-      const current = span.textContent.split('/')[0]; // attended
-      span.outerHTML = `<input type="number" min="0" max="${total}" id="att-${id}" value="${current}">`;
-      e.target.remove(); // remove pencil
-    });
+  const existingSnap = await getDocs(collection(db, 'attendance', date, 'students'));
+  existingSnap.forEach(edoc => {
+    const data = edoc.data();
+    const el = document.getElementById(`att-${edoc.id}`);
+    if(el){ el.value = data.attendedClasses ?? 0; }
   });
 });
 
