@@ -101,7 +101,6 @@ function renderCalendar(events){
                  </div>`;
       }
       return { html: `<div>${arg.dayNumberText}${extra}</div>` };
-    }
     dateClick: async (info) => {
   const d = info.dateStr;
 
