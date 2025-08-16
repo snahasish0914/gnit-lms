@@ -105,7 +105,6 @@ function renderCalendar(events){
       const data = schedDoc.data();
 
       let html = `
-        <h3>Classes on ${d}</h3>
         <table class="table">
           <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th><th>Attendance</th></tr></thead>
           <tbody>
