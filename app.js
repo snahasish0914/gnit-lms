@@ -99,35 +99,47 @@ function renderCalendar(events){
     headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
     events,
     dateClick: async (info) => {
-      const d = info.dateStr;
-      const schedDoc = await getDoc(doc(db,'schedule', d));
-      if(!schedDoc.exists()){ alert("No classes scheduled."); return; }
-      const data = schedDoc.data();
+  const d = info.dateStr;
 
-      let html = `
-        <table class="table">
-          <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th><th>Attendance</th></tr></thead>
-          <tbody>
-      `;
-      
-      for(const p of data.periods){
-        // get student’s attendance for that period
-        const attSnap = await getDoc(doc(db,'attendance', d, 'students', auth.currentUser.uid));
-        let status = "Absent";
-        if(attSnap.exists()){
-          const att = attSnap.data();
-          // if attendedClasses >= period number → mark Present
-          status = (att.attendedClasses && att.attendedClasses >= p.period) ? "Present" : "Absent";
-        }
-        html += `<tr><td>${p.period}</td><td>${p.subject}</td><td>${p.faculty}</td><td>${status}</td></tr>`;
-      }
-
-      html += `</tbody></table>`;
-      // show modal or popup
-      document.getElementById("modalTitle").textContent = `Classes on ${d}`;
-  document.getElementById("modalContent").innerHTML = html;
+  // Show modal immediately with loading text
+  document.getElementById("modalTitle").textContent = `Classes on ${d}`;
+  document.getElementById("modalContent").innerHTML = `<div class="loader"></div><p style="text-align:center;">Loading...</p>`;
   document.getElementById("classDetailsModal").style.display = "block";
+
+  try {
+    // Fetch schedule
+    const schedDoc = await getDoc(doc(db, 'schedule', d));
+    if (!schedDoc.exists()) {
+      document.getElementById("modalContent").innerHTML = `<p>No classes scheduled.</p>`;
+      return;
     }
+    const data = schedDoc.data();
+
+    // Fetch student attendance once
+    const attSnap = await getDoc(doc(db, 'attendance', d, 'students', auth.currentUser.uid));
+    const attData = attSnap.exists() ? attSnap.data() : null;
+
+    let html = `
+      <table class="table">
+        <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th><th>Attendance</th></tr></thead>
+        <tbody>
+    `;
+
+    for (const p of data.periods) {
+      let status = "Absent";
+      if (attData) {
+        status = (attData.attendedClasses && attData.attendedClasses >= p.period) ? "Present" : "Absent";
+      }
+      html += `<tr><td>${p.period}</td><td>${p.subject}</td><td>${p.faculty}</td><td>${status}</td></tr>`;
+    }
+
+    html += `</tbody></table>`;
+    document.getElementById("modalContent").innerHTML = html;
+
+  } catch (e) {
+    document.getElementById("modalContent").innerHTML = `<p style="color:red;">Error loading data: ${e.message}</p>`;
+  }
+}
   });
   calendar.render();
 }
