@@ -21,6 +21,21 @@ onAuthStateChanged(auth, async (user) => {
   else { ensureAdmin(user); await loadSchedule(); }
 });
 
+// ===== Add new period row =====
+const addRowBtn = document.getElementById('addRowBtn');
+const classDetailsTable = document.getElementById('classDetailsTable').querySelector('tbody');
+
+addRowBtn.addEventListener('click', () => {
+  const rowCount = classDetailsTable.children.length + 1;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="number" min="1" value="${rowCount}"></td>
+    <td><input type="text" placeholder="Subject"></td>
+    <td><input type="text" placeholder="Faculty"></td>
+  `;
+  classDetailsTable.appendChild(tr);
+});
+
 document.getElementById('saveBtn').addEventListener('click', async () => {
   const d = document.getElementById('classDate').value;
   if(!d){ alert('Pick a date'); return; }
