@@ -26,11 +26,11 @@ footer{color:#cbd5e1;text-align:center;padding:30px 0}
 .small{font-size:12px;color:var(--muted)}input[type=number]{width:110px}
 .sticky-actions{position:sticky;bottom:0;background:#fff;padding:10px;border-top:1px solid #e5e7eb;display:flex;justify-content:flex-end;gap:10px}
 #calendar{max-width:100%;}
-.fc .fc-daygrid-day-top{display:flex;justify-content:space-between;align-items:center;padding:4px 6px}
-.fc-daygrid-day-number{font-weight:700}
+.fc .fc-daygrid-day-top{display:flex;justify-content:center;align-items:center;padding:4px 6px}
+.fc-daygrid-day-number{font-weight:700;text-align: center;flex: 1;}
 .fc-event{border:none}
 /* solid background events */
-.fc { --fc-bg-event-opacity: .5; }
+.fc { --fc-bg-event-opacity: .8; }
 .fc .fc-daygrid-day.fc-day-other { opacity: 1 !important; }
 /* style attendance count text */
 .fc .att-count { 
