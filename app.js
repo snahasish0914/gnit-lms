@@ -73,15 +73,8 @@ async function renderDashboard(user){
       start: date,
       allDay: true,
       display: 'background', // color the background of the day cell
-      backgroundColor: color
-    });
-    // Also add a small label event so numbers are visible
-    events.push({
-      title: `${attended}/${total}`,
-      start: date,
-      allDay: true,
-      color: 'transparent',
-      textColor: '#000'
+      backgroundColor: color,
+      interactive: false
     });
   }
 
