@@ -94,6 +94,10 @@ function renderCalendar(events){
     headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
     events,
 
+    dayCellClassNames(arg) {
+      return events.some(e => e.start === arg.dateStr) ? ['has-att'] : [];
+    },
+
     // ✅ properly closed
     dayCellContent: function(arg) {
       const match = events.find(e => e.start === arg.dateStr);
