@@ -30,10 +30,10 @@ footer{color:#cbd5e1;text-align:center;padding:30px 0}
 .fc-daygrid-day-number{font-weight:700}
 .fc-event{border:none}
 /* solid background events */
-.fc { --fc-bg-event-opacity: 1; }
+.fc { --fc-bg-event-opacity: .5; }
 
 /* don't fade days outside the current month */
-.fc .fc-daygrid-day.fc-day-other { opacity: 1 !important; }
+/* .fc .fc-daygrid-day.fc-day-other { opacity: 1 !important; } */
 
 /* style attendance count text */
 .fc .att-count { 
