@@ -125,8 +125,9 @@ function renderCalendar(events){
 
       html += `</tbody></table>`;
       // show modal or popup
-      document.getElementById('classDetailsModal').innerHTML = html;
-      document.getElementById('classDetailsModal').style.display = 'block';
+      document.getElementById("modalTitle").textContent = `Classes on ${d}`;
+  document.getElementById("modalContent").innerHTML = html;
+  document.getElementById("classDetailsModal").style.display = "block";
     }
   });
   calendar.render();
