@@ -29,3 +29,44 @@ footer{color:#cbd5e1;text-align:center;padding:30px 0}
 .fc .fc-daygrid-day-top{display:flex;justify-content:space-between;align-items:center;padding:4px 6px}
 .fc-daygrid-day-number{font-weight:700}
 .fc-event{border:none}
+/* Class details table styling */
+#classDetailsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+#classDetailsTable th, 
+#classDetailsTable td {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px;
+  text-align: left;
+}
+
+#classDetailsTable th {
+  background: #f8fafc;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+#classDetailsTable input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+#classDetailsTable input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Add period button */
+#addRowBtn {
+  margin-top: 10px;
+  font-size: 14px;
+  padding: 8px 14px;
+}
+
