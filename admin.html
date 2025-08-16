@@ -26,10 +26,21 @@
           <label for="classDate">Date</label>
           <input type="date" id="classDate" />
         </div>
-        <div class="field" style="grid-column:span 4">
-          <label for="classCount">Number of Classes on this date</label>
-          <input type="number" id="classCount" min="1" value="1" />
-        </div>
+        
+      <div class="field" style="grid-column:span 12">
+  <label>Class Details</label>
+  <table class="table" id="classDetailsTable">
+    <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><input type="number" min="1" value="1"></td>
+        <td><input type="text" placeholder="Subject"></td>
+        <td><input type="text" placeholder="Faculty"></td>
+      </tr>
+    </tbody>
+  </table>
+  <button id="addRowBtn" class="btn secondary">+ Add Period</button>
+      </div>
         <div class="field" style="grid-column:span 4">
           <label>&nbsp;</label>
           <button id="saveBtn" class="btn">Save Day</button>
@@ -74,21 +85,6 @@
       <p class="small">Values are clamped between 0 and Total Classes.</p>
     </div>
   </div>
-
-  <div class="field" style="grid-column:span 12">
-  <label>Class Details</label>
-  <table class="table" id="classDetailsTable">
-    <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th></tr></thead>
-    <tbody>
-      <tr>
-        <td><input type="number" min="1" value="1"></td>
-        <td><input type="text" placeholder="Subject"></td>
-        <td><input type="text" placeholder="Faculty"></td>
-      </tr>
-    </tbody>
-  </table>
-  <button id="addRowBtn" class="btn secondary">+ Add Period</button>
-</div>
 
   <footer>© Guru Nanak Institute of Technology</footer>
 
