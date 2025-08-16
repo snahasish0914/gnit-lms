@@ -77,15 +77,6 @@ async function renderDashboard(user){
       interactive: false
     });
     
-    events.push({
-  title: `${attended}/${total}`,
-  start: date,
-  allDay: true,
-  color: 'transparent',
-  textColor: '#000',
-  interactive: false
-});
-    
   }
 
   setKpis(totalAll, attendedAll);
