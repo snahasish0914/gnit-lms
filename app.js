@@ -73,7 +73,7 @@ async function renderDashboard(user){
       start: date,
       allDay: true,
       display: 'background', // color the background of the day cell
-      backgroundColor: black,
+      backgroundColor: color,
       interactive: false
     });
   }
@@ -91,6 +91,17 @@ function renderCalendar(events){
     firstDay: 0,
     headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
     events,
+    dayCellContent: function(arg) {
+      // find event for this day
+      const match = events.find(e => e.start === arg.dateStr);
+      let extra = '';
+      if (match) {
+        extra = `<div style="font-size:11px; font-weight:600; color:#000000;">
+                   ${match.title}
+                 </div>`;
+      }
+      return { html: `<div>${arg.dayNumberText}${extra}</div>` };
+    }
     dateClick: async (info) => {
   const d = info.dateStr;
 
