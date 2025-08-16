@@ -30,7 +30,7 @@ footer{color:#cbd5e1;text-align:center;padding:30px 0}
 .fc-daygrid-day-number{font-weight:700}
 .fc-event{border:none}
 /* solid background events */
-.fc { --fc-bg-event-opacity: .4; }
+.fc { --fc-bg-event-opacity: .5; }
 /* style attendance count text */
 .fc .att-count { 
   font-size: 11px; 
