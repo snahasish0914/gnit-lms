@@ -56,44 +56,80 @@ const attendanceTBody = document.getElementById('attendanceTBody');
 
 loadStudentsBtn.addEventListener('click', async () => {
   const date = attendanceDateEl.value;
-  if(!date){ alert('Pick a date first'); return; }
+  if (!date) { alert('Pick a date first'); return; }
+
   const schedDoc = await getDoc(doc(db,'schedule', date));
   const total = schedDoc.exists() ? (schedDoc.data().classCount || 0) : 0;
   attendanceTotalEl.value = total;
 
   attendanceTBody.innerHTML = '';
+
+  // Load existing attendance first
+  const existingSnap = await getDocs(collection(db, 'attendance', date, 'students'));
+  const existing = {};
+  existingSnap.forEach(edoc => { existing[edoc.id] = edoc.data(); });
+
+  // Load all students
   const studentsSnap = await getDocs(collection(db,'students'));
   studentsSnap.forEach(sdoc => {
     const s = sdoc.data();
-    const inputId = `att-${sdoc.id}`;
+    const id = sdoc.id;
+    const prev = existing[id];
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${s.name || 'Unnamed'}</td><td>${s.email || ''}</td>
-      <td><input type="number" min="0" max="${total}" id="${inputId}" placeholder="0"></td>`;
+
+    if (prev) {
+      // Already has attendance → show value + pencil
+      tr.innerHTML = `
+        <td>${s.name || 'Unnamed'}</td>
+        <td>${s.email || ''}</td>
+        <td>
+          <span id="att-val-${id}">${prev.attendedClasses}/${prev.totalClasses}</span>
+          <button class="edit-btn" data-id="${id}" style="margin-left:8px">✏️</button>
+        </td>`;
+    } else {
+      // No attendance yet → show input
+      tr.innerHTML = `
+        <td>${s.name || 'Unnamed'}</td>
+        <td>${s.email || ''}</td>
+        <td><input type="number" min="0" max="${total}" id="att-${id}" placeholder="0"></td>`;
+    }
+
     attendanceTBody.appendChild(tr);
   });
 
-  const existingSnap = await getDocs(collection(db, 'attendance', date, 'students'));
-  existingSnap.forEach(edoc => {
-    const data = edoc.data();
-    const el = document.getElementById(`att-${edoc.id}`);
-    if(el){ el.value = data.attendedClasses ?? 0; }
+  // Enable editing when pencil clicked
+  document.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const id = e.target.dataset.id;
+      const span = document.getElementById(`att-val-${id}`);
+      const current = span.textContent.split('/')[0]; // attended
+      span.outerHTML = `<input type="number" min="0" max="${total}" id="att-${id}" value="${current}">`;
+      e.target.remove(); // remove pencil
+    });
   });
 });
 
 saveAttendanceBtn.addEventListener('click', async () => {
   const date = attendanceDateEl.value;
   const total = parseInt(attendanceTotalEl.value || '0', 10);
-  if(!date){ alert('Pick a date first'); return; }
+  if (!date) { alert('Pick a date first'); return; }
 
   const studentsSnap = await getDocs(collection(db,'students'));
   const ops = [];
+
   for (const sdoc of studentsSnap.docs){
     const el = document.getElementById(`att-${sdoc.id}`);
-    if(!el) continue;
-    let attended = parseInt(el.value || '0', 10);
-    if(attended < 0) attended = 0;
-    if(attended > total) attended = total;
+    let attended;
+
+    if (el) {
+      attended = parseInt(el.value || '0', 10);
+      if (attended < 0) attended = 0;
+      if (attended > total) attended = total;
+    } else {
+      // keep old value if no new input
+      const prev = await getDoc(doc(db,'attendance', date, 'students', sdoc.id));
+      attended = prev.exists() ? (prev.data().attendedClasses || 0) : 0;
+    }
 
     ops.push(setDoc(doc(db,'attendance', date, 'students', sdoc.id), {
       uid: sdoc.id,
@@ -104,6 +140,7 @@ saveAttendanceBtn.addEventListener('click', async () => {
       updatedAt: Date.now()
     }, { merge: true }));
   }
-  try{ await Promise.all(ops); alert('Attendance saved.'); }
+
+  try { await Promise.all(ops); alert('Attendance saved.'); }
   catch(e){ alert('Error saving attendance: '+ e.message); }
 });
