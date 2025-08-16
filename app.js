@@ -91,13 +91,43 @@ async function renderDashboard(user){
 
 function renderCalendar(events){
   const el = document.getElementById('calendar');
-  el.innerHTML = ''; // reset
+  el.innerHTML = '';
   const calendar = new FullCalendar.Calendar(el, {
     initialView: 'dayGridMonth',
     height: 'auto',
     firstDay: 0,
     headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
-    events
+    events,
+    dateClick: async (info) => {
+      const d = info.dateStr;
+      const schedDoc = await getDoc(doc(db,'schedule', d));
+      if(!schedDoc.exists()){ alert("No classes scheduled."); return; }
+      const data = schedDoc.data();
+
+      let html = `
+        <h3>Classes on ${d}</h3>
+        <table class="table">
+          <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th><th>Attendance</th></tr></thead>
+          <tbody>
+      `;
+      
+      for(const p of data.periods){
+        // get student’s attendance for that period
+        const attSnap = await getDoc(doc(db,'attendance', d, 'students', auth.currentUser.uid));
+        let status = "Absent";
+        if(attSnap.exists()){
+          const att = attSnap.data();
+          // if attendedClasses >= period number → mark Present
+          status = (att.attendedClasses && att.attendedClasses >= p.period) ? "Present" : "Absent";
+        }
+        html += `<tr><td>${p.period}</td><td>${p.subject}</td><td>${p.faculty}</td><td>${status}</td></tr>`;
+      }
+
+      html += `</tbody></table>`;
+      // show modal or popup
+      document.getElementById('classDetailsModal').innerHTML = html;
+      document.getElementById('classDetailsModal').style.display = 'block';
+    }
   });
   calendar.render();
 }
