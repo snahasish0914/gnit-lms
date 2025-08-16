@@ -40,9 +40,20 @@
 
   <footer>© Guru Nanak Institute of Technology</footer>
 
-  <div id="classDetailsModal" class="card" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); max-width:600px; z-index:999; background:#fff; padding:20px; border-radius:12px;">
-  <!-- Filled dynamically -->
-  <button onclick="this.parentElement.style.display='none'" class="btn danger">Close</button>
+  <div id="classDetailsModal" class="card" 
+     style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); 
+            max-width:600px; width:90%; z-index:999; background:#fff; padding:20px; 
+            border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <h3 id="modalTitle" style="margin:0;">Classes</h3>
+    <button onclick="document.getElementById('classDetailsModal').style.display='none'" 
+            class="btn danger" style="padding:6px 10px; font-size:14px;">✖</button>
+  </div>
+
+  <div id="modalContent">
+    <!-- Filled dynamically by app.js -->
+  </div>
 </div>
 
   <script type="module" src="app.js"></script>
