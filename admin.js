@@ -23,11 +23,29 @@ onAuthStateChanged(auth, async (user) => {
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
   const d = document.getElementById('classDate').value;
-  const c = parseInt(document.getElementById('classCount').value || '0', 10);
-  if(!d || c<1){ alert('Pick a date and a class count ≥ 1'); return; }
+  if(!d){ alert('Pick a date'); return; }
+
+  // collect class details
+  const rows = document.querySelectorAll('#classDetailsTable tbody tr');
+  const periods = [];
+  rows.forEach(r => {
+    const p = parseInt(r.children[0].querySelector('input').value || '0',10);
+    const subject = r.children[1].querySelector('input').value.trim();
+    const faculty = r.children[2].querySelector('input').value.trim();
+    if(p && subject && faculty){
+      periods.push({ period:p, subject, faculty });
+    }
+  });
+
   try{
-    await setDoc(doc(db,'schedule', d), { date:d, classCount:c, updatedAt: Date.now() });
-    await loadSchedule(); alert('Saved!');
+    await setDoc(doc(db,'schedule', d), {
+      date: d,
+      classCount: periods.length,
+      periods,
+      updatedAt: Date.now()
+    });
+    await loadSchedule();
+    alert('Saved!');
   }catch(e){ alert('Error saving schedule: '+ e.message); }
 });
 
