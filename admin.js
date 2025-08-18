@@ -69,7 +69,7 @@ async function loadSchedule(){
   const toggleBtn = document.getElementById('toggleScheduleBtn');
   tbody.innerHTML = '';
 
-  const qy = query(collection(db,'schedule'), orderBy('date','asc'));
+  const qy = query(collection(db,'schedule'), orderBy('date','desc'));
   const snap = await getDocs(qy);
 
   let total = 0;
