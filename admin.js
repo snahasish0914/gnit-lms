@@ -1,4 +1,3 @@
-
 import { auth, db, onAuthStateChanged, signOut, collection, doc, setDoc, getDoc, getDocs, orderBy, query } from './firebase.js';
 
 const ADMIN_EMAILS = ["snahasishdey141@gmail.com"]; // replace with your admin email(s)
@@ -62,6 +61,92 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     await loadSchedule();
     alert('Saved!');
   }catch(e){ alert('Error saving schedule: '+ e.message); }
+});
+
+// ===== WEEKLY TIMETABLE MODE =====
+
+// Switch between weekday tabs
+document.querySelectorAll('.weekdayTab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const day = btn.dataset.day;
+    document.querySelectorAll('.weekday-table').forEach(div => div.style.display='none');
+    document.getElementById(`table-${day}`).style.display = 'block';
+  });
+});
+
+// Add row buttons for each weekday
+document.querySelectorAll('.addRowBtn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const day = btn.dataset.day;
+    const tbody = document.querySelector(`#table-${day} tbody`);
+    const rowCount = tbody.children.length + 1;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="number" min="1" value="${rowCount}"></td>
+      <td><input type="text" placeholder="Subject"></td>
+      <td><input type="text" placeholder="Faculty"></td>
+    `;
+    tbody.appendChild(tr);
+  });
+});
+
+// Helper: weekdays in range
+function getWeekdaysInRange(start, end) {
+  const dates = [];
+  let current = new Date(start);
+  const endDate = new Date(end);
+  while (current <= endDate) {
+    const day = current.getDay(); // 1=Mon..5=Fri
+    if (day >= 1 && day <= 5) {
+      dates.push(current.toISOString().split('T')[0]);
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  return dates;
+}
+
+// Save weekly range
+document.getElementById('saveWeeklyBtn').addEventListener('click', async () => {
+  const start = document.getElementById('multiStart').value;
+  const end = document.getElementById('multiEnd').value;
+  if (!start || !end) { alert("Pick start and end dates"); return; }
+
+  // Collect timetable template
+  const weekTemplate = {};
+  for (let day=1; day<=5; day++) {
+    const rows = document.querySelectorAll(`#table-${day} tbody tr`);
+    const periods = [];
+    rows.forEach(r => {
+      const p = parseInt(r.children[0].querySelector('input').value || '0',10);
+      const subject = r.children[1].querySelector('input').value.trim();
+      const faculty = r.children[2].querySelector('input').value.trim();
+      if (p && subject && faculty) {
+        periods.push({ period:p, subject, faculty });
+      }
+    });
+    weekTemplate[day] = periods;
+  }
+
+  const weekdays = getWeekdaysInRange(start, end);
+  if (weekdays.length === 0) { alert('No weekdays in range'); return; }
+
+  try {
+    const ops = weekdays.map(d => {
+      const dow = new Date(d).getDay(); // 1=Mon, 2=Tue...
+      const periods = weekTemplate[dow] || [];
+      return setDoc(doc(db, 'schedule', d), {
+        date: d,
+        classCount: periods.length,
+        periods,
+        updatedAt: Date.now()
+      });
+    });
+    await Promise.all(ops);
+    await loadSchedule();
+    alert(`Saved weekly schedule for ${weekdays.length} weekdays.`);
+  } catch(e) {
+    alert("Error saving weekly schedule: " + e.message);
+  }
 });
 
 async function loadSchedule(){
