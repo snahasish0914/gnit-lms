@@ -45,21 +45,87 @@
           <label>&nbsp;</label>
           <button id="saveBtn" class="btn">Save Day</button>
         </div>
-        <div class="field" style="grid-column:span 4">
-  <label for="multiStart">Start Date</label>
-  <input type="date" id="multiStart" />
-</div>
-<div class="field" style="grid-column:span 4">
-  <label for="multiEnd">End Date</label>
-  <input type="date" id="multiEnd" />
-</div>
-<div class="field" style="grid-column:span 4">
-  <label>&nbsp;</label>
-  <button id="saveMultiBtn" class="btn success">Save Range (Mon–Fri)</button>
-</div>
       </div>
       <p class="small">Saving again overwrites class count for that date.</p>
     </div>
+
+    <div class="card" style="margin-top:18px">
+  <h3>Create Weekly Timetable (Bulk Save)</h3>
+
+  <!-- Tabs -->
+  <div style="margin-bottom:10px">
+    <button class="btn secondary weekdayTab" data-day="1">Monday</button>
+    <button class="btn secondary weekdayTab" data-day="2">Tuesday</button>
+    <button class="btn secondary weekdayTab" data-day="3">Wednesday</button>
+    <button class="btn secondary weekdayTab" data-day="4">Thursday</button>
+    <button class="btn secondary weekdayTab" data-day="5">Friday</button>
+  </div>
+
+  <!-- Weekday tables -->
+  <div id="weekdayTables">
+    <div class="weekday-table" id="table-1">
+      <h4>Monday</h4>
+      <table class="table">
+        <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <button class="btn secondary addRowBtn" data-day="1">+ Add Period</button>
+    </div>
+
+    <div class="weekday-table" id="table-2" style="display:none">
+      <h4>Tuesday</h4>
+      <table class="table">
+        <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <button class="btn secondary addRowBtn" data-day="2">+ Add Period</button>
+    </div>
+
+    <div class="weekday-table" id="table-3" style="display:none">
+      <h4>Wednesday</h4>
+      <table class="table">
+        <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <button class="btn secondary addRowBtn" data-day="3">+ Add Period</button>
+    </div>
+
+    <div class="weekday-table" id="table-4" style="display:none">
+      <h4>Thursday</h4>
+      <table class="table">
+        <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <button class="btn secondary addRowBtn" data-day="4">+ Add Period</button>
+    </div>
+
+    <div class="weekday-table" id="table-5" style="display:none">
+      <h4>Friday</h4>
+      <table class="table">
+        <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <button class="btn secondary addRowBtn" data-day="5">+ Add Period</button>
+    </div>
+  </div>
+
+  <!-- Date range -->
+  <div class="grid" style="margin-top:10px">
+    <div class="field" style="grid-column:span 4">
+      <label for="multiStart">Start Date</label>
+      <input type="date" id="multiStart" />
+    </div>
+    <div class="field" style="grid-column:span 4">
+      <label for="multiEnd">End Date</label>
+      <input type="date" id="multiEnd" />
+    </div>
+    <div class="field" style="grid-column:span 4">
+      <label>&nbsp;</label>
+      <button id="saveWeeklyBtn" class="btn success">Save Weekly Range</button>
+    </div>
+  </div>
+  <p class="small">Schedules will be created for each weekday (Mon–Fri) between start and end date.</p>
+</div>
 
     <div class="card" style="margin-top:18px">
       <div style="display:flex; justify-content:space-between; align-items:center">
