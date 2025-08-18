@@ -66,18 +66,50 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
 
 async function loadSchedule(){
   const tbody = document.querySelector('#scheduleTable tbody');
+  const toggleBtn = document.getElementById('toggleScheduleBtn');
   tbody.innerHTML = '';
+
   const qy = query(collection(db,'schedule'), orderBy('date','asc'));
   const snap = await getDocs(qy);
+
   let total = 0;
+  const rows = [];
   snap.forEach(docu => {
     const row = docu.data();
     total += (row.classCount || 0);
     const tr = document.createElement('tr');
     tr.innerHTML = `<td>${row.date}</td><td>${row.classCount}</td>`;
-    tbody.appendChild(tr);
+    rows.push(tr);
   });
+
   document.getElementById('totalClasses').textContent = `${total} total classes`;
+
+  // limit display to first 10
+  const limit = 5;
+  rows.forEach((tr, i) => {
+    if (i < limit) tbody.appendChild(tr);
+  });
+
+  // Show toggle button only if more than limit
+  if (rows.length > limit) {
+    toggleBtn.style.display = 'inline-block';
+    let expanded = false;
+    toggleBtn.textContent = "Show More";
+
+    toggleBtn.onclick = () => {
+      expanded = !expanded;
+      tbody.innerHTML = '';
+      if (expanded) {
+        rows.forEach(tr => tbody.appendChild(tr));
+        toggleBtn.textContent = "Show Less";
+      } else {
+        rows.slice(0, limit).forEach(tr => tbody.appendChild(tr));
+        toggleBtn.textContent = "Show More";
+      }
+    };
+  } else {
+    toggleBtn.style.display = 'none';
+  }
 }
 
 // ===== Attendance marking =====
