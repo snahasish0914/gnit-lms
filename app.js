@@ -83,77 +83,111 @@ async function renderDashboard(user){
   renderCalendar(events);
 }
 
-function renderCalendar(events){
-  const el = document.getElementById('calendar');
-  el.innerHTML = '';
+let currentYear, currentMonth;
 
-  const calendar = new FullCalendar.Calendar(el, {
-    initialView: 'dayGridMonth',
-    height: 'auto',
-    firstDay: 0,
-    headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
-    events,
+// Main render function (draws calendar grid for current month)
+function renderCalendar(events) {
+  const el = document.getElementById("calendar");
+  el.innerHTML = "";
 
-    dayCellClassNames(arg) {
-      return events.some(e => e.start === arg.dateStr) ? ['has-att'] : [];
-    },
+  if (currentYear === undefined || currentMonth === undefined) {
+    const now = new Date();
+    currentYear = now.getFullYear();
+    currentMonth = now.getMonth();
+  }
 
-    // ✅ properly closed
-    dayCellContent: function(arg) {
-      const match = events.find(e => e.start === arg.dateStr);
-      let extra = '';
-      if (match) {
-        extra = `<div style="font-size:11px; font-weight:600; color:#000000;">
-                   ${match.title}
-                 </div>`;
-      }
-      return { html: `<div>${arg.dayNumberText}${extra}</div>` };
-    },
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const lastDay = new Date(currentYear, currentMonth + 1, 0);
+  const startWeekday = firstDay.getDay();
+  const daysInMonth = lastDay.getDate();
 
-    // ✅ now dateClick is separate
-    dateClick: async (info) => {
-      const d = info.dateStr;
+  // Map events by date
+  const eventMap = {};
+  events.forEach(e => { eventMap[e.start] = e; });
 
-      // Show modal immediately with loading text
-      document.getElementById("modalTitle").textContent = `Classes on ${d}`;
-      document.getElementById("modalContent").innerHTML = `<div class="loader"></div><p style="text-align:center;">Loading...</p>`;
-      document.getElementById("classDetailsModal").style.display = "block";
+  // === Header with navigation ===
+  const header = document.createElement("div");
+  header.style.display = "flex";
+  header.style.justifyContent = "space-between";
+  header.style.alignItems = "center";
+  header.style.marginBottom = "8px";
 
-      try {
-        // Fetch schedule
-        const schedDoc = await getDoc(doc(db, 'schedule', d));
-        if (!schedDoc.exists()) {
-          document.getElementById("modalContent").innerHTML = `<p>No classes scheduled.</p>`;
-          return;
-        }
-        const data = schedDoc.data();
+  const prevBtn = document.createElement("button");
+  prevBtn.textContent = "◀";
+  prevBtn.className = "btn secondary";
+  prevBtn.onclick = () => {
+    currentMonth--;
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+    loadMonthEvents(currentYear, currentMonth); // fetch new month
+  };
 
-        // Fetch student attendance once
-        const attSnap = await getDoc(doc(db, 'attendance', d, 'students', auth.currentUser.uid));
-        const attData = attSnap.exists() ? attSnap.data() : null;
+  const title = document.createElement("div");
+  title.style.fontWeight = "700";
+  title.textContent = new Date(currentYear, currentMonth).toLocaleString("default", { month: "long", year: "numeric" });
 
-        let html = `
-          <table class="table">
-            <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th><th>Attendance</th></tr></thead>
-            <tbody>
-        `;
+  const nextBtn = document.createElement("button");
+  nextBtn.textContent = "▶";
+  nextBtn.className = "btn secondary";
+  nextBtn.onclick = () => {
+    currentMonth++;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    loadMonthEvents(currentYear, currentMonth); // fetch new month
+  };
 
-        for (const p of data.periods) {
-          let status = "Absent";
-          if (attData) {
-            status = (attData.attendedClasses && attData.attendedClasses >= p.period) ? "Present" : "Absent";
-          }
-          html += `<tr><td>${p.period}</td><td>${p.subject}</td><td>${p.faculty}</td><td>${status}</td></tr>`;
-        }
+  header.appendChild(prevBtn);
+  header.appendChild(title);
+  header.appendChild(nextBtn);
+  el.appendChild(header);
 
-        html += `</tbody></table>`;
-        document.getElementById("modalContent").innerHTML = html;
+  // === Grid ===
+  const weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const grid = document.createElement("div");
+  grid.style.display = "grid";
+  grid.style.gridTemplateColumns = "repeat(7, 1fr)";
+  grid.style.gap = "4px";
+  el.appendChild(grid);
 
-      } catch (e) {
-        document.getElementById("modalContent").innerHTML = `<p style="color:red;">Error loading data: ${e.message}</p>`;
-      }
-    }
+  weekdays.forEach(d => {
+    const div = document.createElement("div");
+    div.textContent = d;
+    div.style.fontWeight = "600";
+    div.style.textAlign = "center";
+    grid.appendChild(div);
   });
 
-  calendar.render();
+  // Empty cells before first day
+  for (let i = 0; i < startWeekday; i++) {
+    const empty = document.createElement("div");
+    grid.appendChild(empty);
+  }
+
+  // Days
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+    const cell = document.createElement("div");
+    cell.textContent = day;
+    cell.style.padding = "6px";
+    cell.style.borderRadius = "6px";
+    cell.style.textAlign = "center";
+    cell.style.cursor = "pointer";
+
+    if (eventMap[dateStr]) {
+      const e = eventMap[dateStr];
+      cell.style.background = e.backgroundColor;
+      cell.style.color = "#fff";
+      cell.title = e.title; // tooltip
+    } else {
+      cell.style.background = "#f3f4f6"; // light gray
+    }
+
+    // Click → open modal
+    cell.addEventListener("click", () => {
+      document.getElementById("modalTitle").textContent = `Classes on ${dateStr}`;
+      document.getElementById("modalContent").innerHTML = "<p>Loading...</p>";
+      document.getElementById("classDetailsModal").style.display = "block";
+      loadDayDetails(dateStr);
+    });
+
+    grid.appendChild(cell);
+  }
 }
