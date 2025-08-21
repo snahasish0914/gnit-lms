@@ -1,4 +1,3 @@
-
 import { auth, db, provider, signInWithPopup, onAuthStateChanged, signOut, collection, doc, setDoc, getDoc, getDocs, query, orderBy } from './firebase.js';
 import { fmtPct } from './utils.js';
 
@@ -265,49 +264,3 @@ async function loadDayDetails(dateStr) {
     document.getElementById("modalContent").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
   }
 }
-async function loadMonthEvents(year, month) {
-  const start = `${year}-${String(month+1).padStart(2,"0")}-01`;
-  const endDate = new Date(year, month+1, 0).getDate();
-  const end = `${year}-${String(month+1).padStart(2,"0")}-${endDate}`;
-
-  // Query schedule for this month only
-  const q = query(
-    collection(db,'schedule'),
-    orderBy('date','asc')
-  );
-  const snap = await getDocs(q);
-
-  const events = [];
-  let totalAll = 0;
-  let attendedAll = 0;
-
-  for (const d of snap.docs) {
-    const date = d.id;
-    if (date < start || date > end) continue; // skip outside month
-
-    const total = d.data().classCount || 0;
-    if (total <= 0) continue;
-
-    totalAll += total;
-
-    const userAttRef = doc(db,'attendance', date, 'students', auth.currentUser.uid);
-    const attSnap = await getDoc(userAttRef);
-    const attended = attSnap.exists() ? (attSnap.data().attendedClasses || 0) : 0;
-    attendedAll += attended;
-
-    // Color logic
-    let color = '#ef4444'; // red = absent
-    if (attended === total) color = '#10b981'; // green full
-    else if (attended > 0 && attended < total) color = '#f59e0b'; // yellow partial
-
-    events.push({
-      title: `${attended}/${total}`,
-      start: date,
-      backgroundColor: color
-    });
-  }
-
-  setKpis(totalAll, attendedAll);
-  renderCalendar(events);
-}
-
