@@ -15,7 +15,7 @@ onAuthStateChanged(auth, async (user) => {
     logoutBtn.classList.remove('hidden');
     userName.textContent = user.displayName || user.email;
     await ensureStudentDoc(user);
-    await renderDashboard(user);
+    await loadMonthEvents(new Date().getFullYear(), new Date().getMonth());
   }else{
     loginBtn.classList.remove('hidden');
     logoutBtn.classList.add('hidden');
@@ -191,3 +191,123 @@ function renderCalendar(events) {
     grid.appendChild(cell);
   }
 }
+async function loadMonthEvents(year, month) {
+  const start = `${year}-${String(month+1).padStart(2,"0")}-01`;
+  const endDate = new Date(year, month+1, 0).getDate();
+  const end = `${year}-${String(month+1).padStart(2,"0")}-${endDate}`;
+
+  // Query schedule for this month only
+  const q = query(
+    collection(db,'schedule'),
+    orderBy('date','asc')
+  );
+  const snap = await getDocs(q);
+
+  const events = [];
+  let totalAll = 0;
+  let attendedAll = 0;
+
+  for (const d of snap.docs) {
+    const date = d.id;
+    if (date < start || date > end) continue; // skip outside month
+
+    const total = d.data().classCount || 0;
+    if (total <= 0) continue;
+
+    totalAll += total;
+
+    const userAttRef = doc(db,'attendance', date, 'students', auth.currentUser.uid);
+    const attSnap = await getDoc(userAttRef);
+    const attended = attSnap.exists() ? (attSnap.data().attendedClasses || 0) : 0;
+    attendedAll += attended;
+
+    // Color logic
+    let color = '#ef4444'; // red = absent
+    if (attended === total) color = '#10b981'; // green full
+    else if (attended > 0 && attended < total) color = '#f59e0b'; // yellow partial
+
+    events.push({
+      title: `${attended}/${total}`,
+      start: date,
+      backgroundColor: color
+    });
+  }
+
+  setKpis(totalAll, attendedAll);
+  renderCalendar(events);
+}
+async function loadDayDetails(dateStr) {
+  try {
+    const schedDoc = await getDoc(doc(db, 'schedule', dateStr));
+    if (!schedDoc.exists()) {
+      document.getElementById("modalContent").innerHTML = `<p>No classes scheduled.</p>`;
+      return;
+    }
+    const data = schedDoc.data();
+    const attSnap = await getDoc(doc(db, 'attendance', dateStr, 'students', auth.currentUser.uid));
+    const attData = attSnap.exists() ? attSnap.data() : null;
+
+    let html = `
+      <table class="table">
+        <thead><tr><th>Period</th><th>Subject</th><th>Faculty</th><th>Status</th></tr></thead>
+        <tbody>
+    `;
+    for (const p of data.periods) {
+      let status = "Absent";
+      if (attData) {
+        status = (attData.attendedClasses && attData.attendedClasses >= p.period) ? "Present" : "Absent";
+      }
+      html += `<tr><td>${p.period}</td><td>${p.subject}</td><td>${p.faculty}</td><td>${status}</td></tr>`;
+    }
+    html += `</tbody></table>`;
+    document.getElementById("modalContent").innerHTML = html;
+  } catch (e) {
+    document.getElementById("modalContent").innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
+  }
+}
+async function loadMonthEvents(year, month) {
+  const start = `${year}-${String(month+1).padStart(2,"0")}-01`;
+  const endDate = new Date(year, month+1, 0).getDate();
+  const end = `${year}-${String(month+1).padStart(2,"0")}-${endDate}`;
+
+  // Query schedule for this month only
+  const q = query(
+    collection(db,'schedule'),
+    orderBy('date','asc')
+  );
+  const snap = await getDocs(q);
+
+  const events = [];
+  let totalAll = 0;
+  let attendedAll = 0;
+
+  for (const d of snap.docs) {
+    const date = d.id;
+    if (date < start || date > end) continue; // skip outside month
+
+    const total = d.data().classCount || 0;
+    if (total <= 0) continue;
+
+    totalAll += total;
+
+    const userAttRef = doc(db,'attendance', date, 'students', auth.currentUser.uid);
+    const attSnap = await getDoc(userAttRef);
+    const attended = attSnap.exists() ? (attSnap.data().attendedClasses || 0) : 0;
+    attendedAll += attended;
+
+    // Color logic
+    let color = '#ef4444'; // red = absent
+    if (attended === total) color = '#10b981'; // green full
+    else if (attended > 0 && attended < total) color = '#f59e0b'; // yellow partial
+
+    events.push({
+      title: `${attended}/${total}`,
+      start: date,
+      backgroundColor: color
+    });
+  }
+
+  setKpis(totalAll, attendedAll);
+  renderCalendar(events);
+}
+
