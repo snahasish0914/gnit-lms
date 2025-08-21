@@ -15,7 +15,7 @@ onAuthStateChanged(auth, async (user) => {
     logoutBtn.classList.remove('hidden');
     userName.textContent = user.displayName || user.email;
     await ensureStudentDoc(user);
-    await loadMonthEvents(new Date().getFullYear(), new Date().getMonth());
+    await loadMonthEvents(new Date().getFullYear(), new Date().getMonth(), user);
   }else{
     loginBtn.classList.remove('hidden');
     logoutBtn.classList.add('hidden');
